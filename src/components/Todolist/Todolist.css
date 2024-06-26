@@ -1,0 +1,12 @@
+.error {
+    outline: red 1px solid;
+    border: transparent
+  }
+   
+  .error-message {
+    color: red;
+  }
+
+  .is-done {
+    opacity: 0.5;
+  }
