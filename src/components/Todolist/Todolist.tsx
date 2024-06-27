@@ -19,7 +19,7 @@ type PropsType = {
 	filtredTasks: FiltredType;
 	removeTask: (taskId: string, todoListId: string) => void;
 	updateTask: (newTitle: string, todoListId: string, id: string) => void;
-	updateTodoListTitle: (newTitle: string, todoListId: string)=> void
+	updateTodoListTitle: (newTitle: string, todoListId: string) => void;
 };
 
 export const Todolist = (props: PropsType) => {
@@ -33,7 +33,7 @@ export const Todolist = (props: PropsType) => {
 		todoListId,
 		removeTask,
 		updateTask,
-		updateTodoListTitle
+		updateTodoListTitle,
 	} = props;
 
 	const checkedInputRadioHandler = (
@@ -48,13 +48,16 @@ export const Todolist = (props: PropsType) => {
 		addTask(value, todoListId);
 	};
 
-	const updateTodoListHandler = (newTitle: string)=> {
+	const updateTodoListHandler = (newTitle: string) => {
 		updateTodoListTitle(newTitle, todoListId);
-	}
+	};
 
 	return (
 		<div>
-			<EditableSpan title={title} updateTitle={updateTodoListHandler} />
+			<h3>
+				<EditableSpan title={title} updateTitle={updateTodoListHandler} />
+			</h3>
+
 			<AddInputList addItem={addTaskHendler} />
 			{tasks.length === 0 ? (
 				<p>Тасок нет</p>

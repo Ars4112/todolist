@@ -94,10 +94,13 @@ function App() {
 				i.id === id ? { ...i, title: newTitle } : i
 			),
 		});
+		console.log(newTitle);
 	};
 
 	const updateTodoListTitle = (newTitle: string, todoListId: string) => {
 		setTodoLists(todoLists.map(i => i.id === todoListId ? {...i, title: newTitle} : i));
+		
+		
 	};
 
 	return (
