@@ -1,25 +1,27 @@
 import { useState, KeyboardEvent, ChangeEvent } from "react";
-import { Button } from "../Button/Button";
+// import { Button } from "../Button/Button";
+import { IconButton, TextField, Tooltip, createSvgIcon } from "@mui/material";
+import AddBoxIcon from "@mui/icons-material/AddBox";
 
 type InputPropsType = {
 	addItem: (value: string) => void;
 };
 
-export function AddInputList({addItem}: InputPropsType) {
+export function AddInputList({ addItem }: InputPropsType) {
 	const [inputValue, setInputValue] = useState<string>("");
-	const [error, setError] = useState<string | null>(null);
+	const [errorText, setError] = useState<boolean>(false);
 
 	const addButtonTaskHandler = () => {
 		if (inputValue.trim() !== "") {
 			addItem(inputValue);
 			setInputValue("");
 		} else {
-			setError("Title is required");
+			setError(true);
 		}
 	};
 
 	const addTaskKeyHandler = (e: KeyboardEvent<HTMLInputElement>) => {
-		setError(null);
+		setError(false);
 		if (e.key === "Enter") addButtonTaskHandler();
 	};
 
@@ -28,14 +30,25 @@ export function AddInputList({addItem}: InputPropsType) {
 
 	return (
 		<div>
-			<input
-				className={error ? "error" : ""}
-				value={inputValue}
-				onChange={inputChangeHandler}
+			<TextField
+				error={errorText}
+				helperText={errorText ? "Incorrect entry." : ""}
+				label="Task Title"
+				variant="standard"
 				onKeyUp={addTaskKeyHandler}
+				onChange={inputChangeHandler}
+				value={inputValue}
 			/>
-			<Button title={"+"} buttonClick={addButtonTaskHandler} />
-			{error && <div className="error-message">{error}</div>}
+			<Tooltip title="Add task">
+				<IconButton
+					aria-label="delete"
+					size="small"
+					onClick={addButtonTaskHandler}
+					color={'primary'}
+				>
+					<AddBoxIcon />
+				</IconButton>
+			</Tooltip>
 		</div>
 	);
 }

@@ -3,6 +3,17 @@ import "./App.css";
 import { Todolist } from "./components/Todolist/Todolist";
 import { v1 } from "uuid";
 import { AddInputList } from "./components/AddInputList/AddInputList";
+import AppBar from "@mui/material/AppBar";
+import Toolbar from "@mui/material/Toolbar";
+import IconButton from "@mui/material/IconButton";
+import MenuIcon from "@mui/icons-material/Menu";
+import Grid from "@mui/material/Grid";
+import Container from "@mui/material/Container";
+import Paper from "@mui/material/Paper";
+import { MenuButton } from "./components/Button/MenuButton";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import Switch from "@mui/material/Switch";
+import CssBaseline from "@mui/material/CssBaseline";
 
 export type TaskType = {
 	id: string;
@@ -11,6 +22,8 @@ export type TaskType = {
 };
 
 export type FiltredType = "All" | "Active" | "Completed";
+
+type ThemeMode = "light" | "dark";
 
 type TodoListsType = {
 	id: string;
@@ -46,6 +59,8 @@ function App() {
 	const [tasks, setTasks] = useState(initTasks);
 	const [todoLists, setTodoLists] =
 		useState<Array<TodoListsType>>(initTodoLists);
+
+	const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
 	const getValueFilter = (value: FiltredType, id: string) => {
 		const newTodoLists = todoLists.map((i) =>
@@ -94,55 +109,104 @@ function App() {
 				i.id === id ? { ...i, title: newTitle } : i
 			),
 		});
-		console.log(newTitle);
 	};
 
 	const updateTodoListTitle = (newTitle: string, todoListId: string) => {
-		setTodoLists(todoLists.map(i => i.id === todoListId ? {...i, title: newTitle} : i));
-		
-		
+		setTodoLists(
+			todoLists.map((i) =>
+				i.id === todoListId ? { ...i, title: newTitle } : i
+			)
+		);
+	};
+
+	const theme = createTheme({
+		palette: {
+			mode: themeMode === "light" ? "light" : "dark",
+			primary: {
+				main: "#ef6c00",
+			},
+		},
+	});
+
+	const changeModeHandler = () => {
+		setThemeMode(themeMode === "light" ? "dark" : "light");
 	};
 
 	return (
-		<div className="App">
-			<AddInputList addItem={addTodolist} />
-			{todoLists.map((i) => {
-				let filtredArrayTasks = tasks[i.id];
+		<ThemeProvider theme={theme}>
+			 <CssBaseline />
+			<div className="App">
+				<AppBar position="static" sx={{ mb: "30px" }}>
+					<Toolbar
+						variant="dense"
+						sx={{ display: "flex", justifyContent: "space-between" }}
+					>
+						<IconButton
+							edge="start"
+							color="inherit"
+							aria-label="menu"
+							sx={{ mr: 2 }}
+						>
+							<MenuIcon />
+						</IconButton>
+						<div>
+							<MenuButton>Login</MenuButton>
+							<MenuButton>Logout</MenuButton>
+							<MenuButton background={`${theme.palette.primary.dark}`}>
+								Faq
+							</MenuButton>
+							<Switch color={"default"} onChange={changeModeHandler} />
+						</div>
+					</Toolbar>
+				</AppBar>
+				<Container>
+					<Grid container sx={{ mb: "30px" }}>
+						<AddInputList addItem={addTodolist} />
+					</Grid>
+					<Grid container spacing={2}>
+						{todoLists.map((i) => {
+							let filtredArrayTasks = tasks[i.id];
+							switch (i.filtred) {
+								case "All":
+									filtredArrayTasks = tasks[i.id];
+									break;
 
-				switch (i.filtred) {
-					case "All":
-						filtredArrayTasks = tasks[i.id];
-						break;
+								case "Active":
+									filtredArrayTasks = filtredArrayTasks.filter(
+										(el) => el.isDone === false
+									);
+									break;
 
-					case "Active":
-						filtredArrayTasks = filtredArrayTasks.filter(
-							(el) => el.isDone === false
-						);
-						break;
-
-					case "Completed":
-						filtredArrayTasks = filtredArrayTasks.filter(
-							(el) => el.isDone === true
-						);
-						break;
-				}
-				return (
-					<Todolist
-						key={i.id}
-						todoListId={i.id}
-						title={i.title}
-						tasks={filtredArrayTasks}
-						addTask={addTask}
-						getValueFilter={getValueFilter}
-						changeInputRadioStatus={changeInputRadioStatus}
-						filtredTasks={i.filtred}
-						removeTask={removeTask}
-						updateTask={updateTask}
-						updateTodoListTitle={updateTodoListTitle}
-					/>
-				);
-			})}
-		</div>
+								case "Completed":
+									filtredArrayTasks = filtredArrayTasks.filter(
+										(el) => el.isDone === true
+									);
+									break;
+							}
+							return (
+								<Grid item>
+									<Paper sx={{ p: "20px" }}>
+										<Todolist
+											key={i.id}
+											todoListId={i.id}
+											title={i.title}
+											tasks={filtredArrayTasks}
+											addTask={addTask}
+											getValueFilter={getValueFilter}
+											changeInputRadioStatus={changeInputRadioStatus}
+											filtredTasks={i.filtred}
+											removeTask={removeTask}
+											updateTask={updateTask}
+											updateTodoListTitle={updateTodoListTitle}
+										/>
+									</Paper>
+								</Grid>
+							);
+						})}
+					</Grid>
+				</Container>
+			</div>
+		</ThemeProvider>
 	);
 }
 

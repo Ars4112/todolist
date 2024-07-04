@@ -1,9 +1,13 @@
 import { ChangeEvent } from "react";
 import { FiltredType, TaskType } from "../../App";
-import { Button } from "../Button/Button";
-import "./Todolist.css";
 import { AddInputList } from "../AddInputList/AddInputList";
 import { EditableSpan } from "../EditableSpan/EditableSpan";
+import { IconButton, List, ListItem, Tooltip } from "@mui/material";
+import DeleteIcon from "@mui/icons-material/Delete";
+import Box from "@mui/material/Box";
+import { filterButtonsContainerSx, getListItemSx } from "./Todolist.styles";
+import Checkbox from "@mui/material/Checkbox";
+import Button from "@mui/material/Button";
 
 type PropsType = {
 	title: string;
@@ -62,50 +66,57 @@ export const Todolist = (props: PropsType) => {
 			{tasks.length === 0 ? (
 				<p>Тасок нет</p>
 			) : (
-				<ul>
+				<List>
 					{tasks.map((task) => {
 						const updateTaskHandler = (newTitle: string) => {
 							updateTask(newTitle, todoListId, task.id);
 						};
 						return (
-							<li className={task.isDone ? "is-done" : ""} key={task.id}>
-								<input
-									type="checkbox"
-									checked={task.isDone}
-									readOnly
-									onChange={(e) => checkedInputRadioHandler(e, task.id)}
-								/>
-								{/* <span>{task.title}</span> */}
-								<EditableSpan
-									title={task.title}
-									updateTitle={updateTaskHandler}
-								/>
-								<Button
-									title={"x"}
-									buttonClick={() => removeTask(task.id, todoListId)}
-								/>
-							</li>
+							<ListItem key={task.id} sx={getListItemSx(task.isDone)}>
+								<div>
+									<Checkbox
+										defaultChecked
+										checked={task.isDone}
+										readOnly
+										onChange={(e) => checkedInputRadioHandler(e, task.id)}
+									/>
+									{/* <span>{task.title}</span> */}
+									<EditableSpan
+										title={task.title}
+										updateTitle={updateTaskHandler}
+									/>
+								</div>
+								<Tooltip title="Delete task">
+									<IconButton
+										aria-label="delete"
+										size="small"
+										onClick={() => removeTask(task.id, todoListId)}
+									>
+										<DeleteIcon fontSize="inherit" />
+									</IconButton>
+								</Tooltip>
+							</ListItem>
 						);
 					})}
-				</ul>
+				</List>
 			)}
-			<div>
+			<Box sx={filterButtonsContainerSx}>
 				<Button
-					className={filtredTasks === "All" ? "active-filter" : ""}
+					variant={filtredTasks === "All" ? "contained" : "outlined"}
 					title={"All"}
-					buttonClick={() => getValueFilter("All", todoListId)}
-				/>
+					onClick={() => getValueFilter("All", todoListId)}
+				>All</Button>
 				<Button
-					className={filtredTasks === "Active" ? "active-filter" : ""}
+					variant={filtredTasks === "Active" ? "contained" : "outlined"}
 					title={"Active"}
-					buttonClick={() => getValueFilter("Active", todoListId)}
-				/>
+					onClick={() => getValueFilter("Active", todoListId)}
+				>Active</Button>
 				<Button
-					className={filtredTasks === "Completed" ? "active-filter" : ""}
+					variant={filtredTasks === "Completed" ? "contained" : "outlined"}
 					title={"Completed"}
-					buttonClick={() => getValueFilter("Completed", todoListId)}
-				/>
-			</div>
+					onClick={() => getValueFilter("Completed", todoListId)}
+				>Completed</Button>
+			</Box>
 		</div>
 	);
 };
