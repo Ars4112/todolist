@@ -25,7 +25,7 @@ export type FiltredType = "All" | "Active" | "Completed";
 
 type ThemeMode = "light" | "dark";
 
-type TodoListsType = {
+export type TodoListsType = {
 	id: string;
 	title: string;
 	filtred: FiltredType;
@@ -62,12 +62,6 @@ function App() {
 
 	const [themeMode, setThemeMode] = useState<ThemeMode>("light");
 
-	const getValueFilter = (value: FiltredType, id: string) => {
-		const newTodoLists = todoLists.map((i) =>
-			i.id === id ? { ...i, filtred: value } : i
-		);
-		setTodoLists(newTodoLists);
-	};
 	const changeInputRadioStatus = (
 		taskId: string,
 		status: boolean,
@@ -82,16 +76,6 @@ function App() {
 	const addTask = (value: string, todoListId: string) => {
 		const newTask = { id: v1(), title: value, isDone: false };
 		setTasks({ ...tasks, [todoListId]: [newTask, ...tasks[todoListId]] });
-	};
-
-	const addTodolist = (value: string) => {
-		const newTodoListId = v1();
-		setTodoLists([
-			...todoLists,
-			{ id: newTodoListId, title: value, filtred: "All" },
-		]);
-
-		setTasks({ ...tasks, [newTodoListId]: [] });
 	};
 
 	const removeTask = (taskId: string, todoListId: string) => {
@@ -111,12 +95,29 @@ function App() {
 		});
 	};
 
+	const addTodolist = (value: string) => {
+		const newTodoListId = v1();
+		setTodoLists([
+			...todoLists,
+			{ id: newTodoListId, title: value, filtred: "All" },
+		]);
+
+		setTasks({ ...tasks, [newTodoListId]: [] });
+	};
+
 	const updateTodoListTitle = (newTitle: string, todoListId: string) => {
 		setTodoLists(
 			todoLists.map((i) =>
 				i.id === todoListId ? { ...i, title: newTitle } : i
 			)
 		);
+	};
+
+	const getValueFilter = (value: FiltredType, id: string) => {
+		const newTodoLists = todoLists.map((i) =>
+			i.id === id ? { ...i, filtred: value } : i
+		);
+		setTodoLists(newTodoLists);
 	};
 
 	const theme = createTheme({
@@ -134,7 +135,7 @@ function App() {
 
 	return (
 		<ThemeProvider theme={theme}>
-			 <CssBaseline />
+			<CssBaseline />
 			<div className="App">
 				<AppBar position="static" sx={{ mb: "30px" }}>
 					<Toolbar
