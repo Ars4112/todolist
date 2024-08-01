@@ -1,10 +1,13 @@
-import React, { ChangeEvent } from "react";
+import React, { memo, useCallback, useMemo } from "react";
 import { FilterValuesType } from "./App";
 import { AddItemForm } from "./AddItemForm";
 import { EditableSpan } from "./EditableSpan";
 import IconButton from "@mui/material/IconButton/IconButton";
 import { Delete } from "@mui/icons-material";
-import { Button, Checkbox } from "@mui/material";
+import { Button } from "@mui/material";
+import { Task } from "./Task";
+import { ButtonMemo } from "./ButtonMemo";
+import { TaskWithRedux } from "./TaskWithRedux";
 
 export type TaskType = {
 	id: string;
@@ -30,26 +33,52 @@ type PropsType = {
 	) => void;
 };
 
-export function Todolist(props: PropsType) {
-    
-	const addTask = (title: string) => {
-		props.addTask(title, props.id);
-	};
+export const Todolist = memo((props: PropsType) => {
+	console.log("Todolist");
 
-	const removeTodolist = () => {
+	let tasks = props.tasks;
+	tasks = useMemo(() => {
+		if (props.filter === "active") {
+			tasks = tasks.filter((t) => t.isDone === false);
+		}
+		if (props.filter === "completed") {
+			tasks = tasks.filter((t) => t.isDone === true);
+		}
+		return tasks
+	}, [tasks, props.filter]);
+
+	const addTask = useCallback(
+		(title: string) => {
+			props.addTask(title, props.id);
+		},
+		[props.addTask, props.id]
+	);
+
+	const removeTodolist = useCallback(() => {
 		props.removeTodolist(props.id);
-	};
-	const changeTodolistTitle = (title: string) => {
-		props.changeTodolistTitle(props.id, title);
-	};
+	}, [props.removeTodolist, props.id]);
 
-	const onAllClickHandler = () => props.changeFilter("all", props.id);
-	const onActiveClickHandler = () => props.changeFilter("active", props.id);
-	const onCompletedClickHandler = () =>
-		props.changeFilter("completed", props.id);
+	const changeTodolistTitle = useCallback(
+		(title: string) => {
+			props.changeTodolistTitle(props.id, title);
+		},
+		[props.changeTodolistTitle, props.id]
+	);
 
-    
-    
+	const onAllClickHandler = useCallback(
+		() => props.changeFilter("all", props.id),
+		[props.changeFilter, props.id]
+	);
+
+	const onActiveClickHandler = useCallback(
+		() => props.changeFilter("active", props.id),
+		[props.changeFilter, props.id]
+	);
+
+	const onCompletedClickHandler = useCallback(
+		() => props.changeFilter("completed", props.id),
+		[props.changeFilter, props.id]
+	);
 
 	return (
 		<div>
@@ -62,56 +91,38 @@ export function Todolist(props: PropsType) {
 			</h3>
 			<AddItemForm addItem={addTask} />
 			<div>
-				{props.tasks.map((t) => {
-                   
-					const onClickHandler = () => props.removeTask(t.id, props.id);
-					const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
-						let newIsDoneValue = e.currentTarget.checked;
-						props.changeTaskStatus(t.id, newIsDoneValue, props.id);
-					};
-					const onTitleChangeHandler = (newValue: string) => {
-						props.changeTaskTitle(t.id, newValue, props.id);
-					};
-
+				{tasks.map((t) => {
 					return (
-						<div key={t.id} className={t.isDone ? "is-done" : ""}>
-							<Checkbox
-								checked={t.isDone}
-								color="primary"
-								onChange={onChangeHandler}
-							/>
-
-							<EditableSpan value={t.title} onChange={onTitleChangeHandler} />
-							<IconButton onClick={onClickHandler}>
-								<Delete />
-							</IconButton>
-						</div>
+						<TaskWithRedux
+							key={t.id}
+							taskId={t.id}
+							title={t.title}
+							isDone={t.isDone}
+							todolistId={props.id}
+						/>
 					);
 				})}
 			</div>
 			<div>
-				<Button
+				<ButtonMemo
 					variant={props.filter === "all" ? "outlined" : "text"}
 					onClick={onAllClickHandler}
 					color={"inherit"}
-				>
-					All
-				</Button>
-				<Button
+					title={"All"}
+				/>
+				<ButtonMemo
 					variant={props.filter === "active" ? "outlined" : "text"}
 					onClick={onActiveClickHandler}
 					color={"primary"}
-				>
-					Active
-				</Button>
-				<Button
+					title={"Active"}
+				/>
+				<ButtonMemo
 					variant={props.filter === "completed" ? "outlined" : "text"}
 					onClick={onCompletedClickHandler}
 					color={"secondary"}
-				>
-					Completed
-				</Button>
+					title={"Completed"}
+				/>
 			</div>
 		</div>
 	);
-}
+});
