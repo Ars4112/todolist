@@ -5,22 +5,27 @@ import { ChangeEvent, memo, useCallback } from "react";
 import { useDispatch } from "react-redux";
 import {
 	changeTaskStatusAC,
+	changeTaskStatusTC,
 	changeTaskTitleAC,
+	changeTaskTitleTC,
 	removeTaskAC,
+	removeTaskTC,
 } from "./state/tasks-reducer";
+import { TaskStatuses } from "./api/todolist-api";
+import { useAppDispatch } from "./state/store";
 
 type TaskPropsType = {
 	taskId: string;
 	title: string;
-	isDone: boolean;
+	isDone: TaskStatuses;
 	todolistId: string;
+	removeTask: (taskId: string, todolistId: string) => void
 };
 
 export const TaskWithRedux = memo((props: TaskPropsType) => {
-	const dispatch = useDispatch();
+	const dispatch = useAppDispatch();
 
-	const onClickHandler = useCallback(
-		() => dispatch(removeTaskAC(props.taskId, props.todolistId)),
+	const onClickHandler = useCallback(() => props.removeTask(props.taskId, props.todolistId),
 		[props.taskId, props.todolistId]
 	);
 
@@ -28,7 +33,11 @@ export const TaskWithRedux = memo((props: TaskPropsType) => {
 		(e: ChangeEvent<HTMLInputElement>) => {
 			let newIsDoneValue = e.currentTarget.checked;
 			dispatch(
-				changeTaskStatusAC(props.taskId, newIsDoneValue, props.todolistId)
+				changeTaskStatusTC(
+					props.todolistId,
+					props.taskId,
+					newIsDoneValue ? TaskStatuses.Completed : TaskStatuses.New
+				)
 			);
 		},
 		[props.taskId, props.todolistId]
@@ -36,7 +45,9 @@ export const TaskWithRedux = memo((props: TaskPropsType) => {
 
 	const onTitleChangeHandler = useCallback(
 		(newValue: string) => {
-			dispatch(changeTaskTitleAC(props.taskId, newValue, props.todolistId));
+			console.log(newValue);
+
+			dispatch(changeTaskTitleTC(props.todolistId, props.taskId, newValue));
 		},
 		[props.taskId, props.todolistId]
 	);
@@ -44,7 +55,7 @@ export const TaskWithRedux = memo((props: TaskPropsType) => {
 	return (
 		<div className={props.isDone ? "is-done" : ""}>
 			<Checkbox
-				checked={props.isDone}
+				checked={props.isDone === TaskStatuses.Completed}
 				color="primary"
 				onChange={onChangeHandler}
 			/>
