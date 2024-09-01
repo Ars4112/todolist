@@ -17,6 +17,7 @@ import IconButton from "@mui/material/IconButton/IconButton";
 import { Menu } from "@mui/icons-material";
 import {
 	FilterValuesType,
+	TodolistType,
 	addTodolistsTC,
 	changeTodolistFilterAC,
 	changeTodolistsTitleTC,
@@ -24,6 +25,7 @@ import {
 	removeTodolistsTC,
 } from "./state/todolists-reducer";
 import {
+	TasksStateType,
 	addTaskTC,
 	changeTaskTitleTC,
 	removeTaskTC,
@@ -35,15 +37,9 @@ import { TaskType } from "./api/todolist-api";
 import { RequestStatusType } from "./state/app-reducer";
 import { ErrorSnackbar } from "./ErrorSnackbar";
 
-export type TodolistType = {
-	id: string;
-	title: string;
-	filter?: FilterValuesType;
-};
 
-export type TasksStateType = {
-	[key: string]: Array<TaskType>;
-};
+
+
 
 export function AppWithRedux() {
 	const todolists = useSelector<AppRootStateType, Array<TodolistType>>(
@@ -56,6 +52,7 @@ export function AppWithRedux() {
 	const status = useSelector<AppRootStateType, RequestStatusType>(
 		(state) => state.app.status
 	);
+	
 
 	const dispatch = useAppDispatch();
 
@@ -134,11 +131,12 @@ export function AppWithRedux() {
 			{status === "loading" && <LinearProgress />}
 			<Container fixed>
 				<Grid container style={{ padding: "20px" }}>
-					<AddItemForm addItem={addTodolist} />
+					<AddItemForm addItem={addTodolist} status={status}/>
 				</Grid>
 				<Grid container spacing={3}>
 					{(status === "loading" ? Array.from(new Array(6)) : todolists).map(
 						(tl, index) => {
+							
 							return (
 								<Grid key={tl ? tl.id : index} item>
 									{tl ? (
@@ -153,6 +151,7 @@ export function AppWithRedux() {
 												addTask={addTask}
 												// changeTaskStatus={changeStatus}
 												filter={tl.filter}
+												entityStatus={tl.entityStatus}
 												removeTodolist={removeTodolist}
 												changeTaskTitle={changeTaskTitle}
 												changeTodolistTitle={changeTodolistTitle}

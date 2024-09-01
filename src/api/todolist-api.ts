@@ -80,6 +80,7 @@ export type TaskType = {
     todoListId: string
     order: number
     addedDate: string
+	editMode?: boolean
 }
 
 export enum TaskStatuses {

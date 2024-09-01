@@ -3,11 +3,16 @@ import TextField from "@mui/material/TextField/TextField";
 import React, { ChangeEvent, KeyboardEvent, memo, useState } from "react";
 import { AddBox } from "@mui/icons-material";
 
+import {  RequestStatusType } from "./state/app-reducer";
+
 type AddItemFormPropsType = {
 	addItem: (title: string) => void;
+	entityStatus?: RequestStatusType
+	status?: RequestStatusType
 };
 
 export const AddItemForm = memo((props: AddItemFormPropsType) => {
+
 	let [title, setTitle] = useState("");
 	let [error, setError] = useState<string | null>(null);
 
@@ -31,8 +36,11 @@ export const AddItemForm = memo((props: AddItemFormPropsType) => {
 		}
 	};
 
+	const disabledButton = error !== null || props.entityStatus === "loading" || props.status === "loading"
+	const disabledInput = props.entityStatus === "loading" || props.status === "loading"
+
 	return (
-		<div>
+		<div style={{marginBottom: "10px"}}>
 			<TextField
 				variant="outlined"
 				error={!!error}
@@ -41,8 +49,9 @@ export const AddItemForm = memo((props: AddItemFormPropsType) => {
 				onKeyUp={onKeyPressHandler}
 				label="Title"
 				helperText={error}
+				disabled={disabledInput}
 			/>
-			<IconButton color="primary" onClick={addItem}>
+			<IconButton color="primary" onClick={addItem} disabled={disabledButton}>
 				<AddBox />
 			</IconButton>
 		</div>

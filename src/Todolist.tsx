@@ -4,19 +4,20 @@ import { AddItemForm } from "./AddItemForm";
 import { EditableSpan } from "./EditableSpan";
 import IconButton from "@mui/material/IconButton/IconButton";
 import { Delete } from "@mui/icons-material";
-import { Button } from "@mui/material";
-import { Task } from "./Task";
 import { ButtonMemo } from "./ButtonMemo";
 import { TaskWithRedux } from "./TaskWithRedux";
 import { useAppDispatch } from "./state/store";
 import { fetchTasksTC } from "./state/tasks-reducer";
 import { TaskStatuses, TaskType } from "./api/todolist-api";
 import { FilterValuesType, changeTodolistsTitleTC } from "./state/todolists-reducer";
+import { RequestStatusType } from "./state/app-reducer";
+import CircularProgress from '@mui/material/CircularProgress';
 
 type PropsType = {
 	id: string;
 	title: string;
 	tasks: Array<TaskType>;
+	entityStatus: RequestStatusType
 	removeTask: (taskId: string, todolistId: string) => void;
 	changeFilter: (value: FilterValuesType, todolistId: string) => void;
 	addTask: (title: string, todolistId: string) => void;
@@ -93,26 +94,34 @@ export const Todolist = memo((props: PropsType) => {
 		<div>
 			<h3>
 				{" "}
-				<EditableSpan value={props.title} onChange={changeTodolistTitle} />
-				<IconButton onClick={removeTodolist}>
+				<EditableSpan value={props.title} onChange={changeTodolistTitle} entityStatus={props.entityStatus}/>
+				<IconButton onClick={removeTodolist} disabled={props.entityStatus === "loading"}>
 					<Delete />
 				</IconButton>
 			</h3>
-			<AddItemForm addItem={addTask} />
-			<div>
-				{tasks?.map((t) => {
-					return (
-						<TaskWithRedux
+			<AddItemForm addItem={addTask} entityStatus={props.entityStatus}/>
+			{tasks.length ? <div>
+				{tasks.map((t) => {
+					return ( <TaskWithRedux
 							key={t.id}
 							taskId={t.id}
 							title={t.title}
 							isDone={t.status}
 							todolistId={props.id}
 							removeTask={props.removeTask}
-						/>
+							entityStatus={props.entityStatus}
+							editMode={t.editMode}
+						/> 
+						
+					
 					);
 				})}
 			</div>
+			:
+			<div style={{display:"flex", justifyContent: "center"}}>
+			 	<CircularProgress  size={24}/>
+			</div>
+			}
 			<div>
 				<ButtonMemo
 					variant={props.filter === "all" ? "outlined" : "text"}

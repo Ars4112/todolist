@@ -1,14 +1,18 @@
-import { TasksStateType } from "../AppWithRedux";
-import { v1 } from "uuid";
 import {
 	AddTodolistActionType,
+	ChangeTodolistEntityStatus,
 	RemoveTodolistActionType,
 	SetTodolistType,
+	changeTodolistEntityStatusAC,
 } from "./todolists-reducer";
 import { TaskStatuses, TaskType, todolistAPI } from "../api/todolist-api";
 import { Dispatch } from "redux";
 import { AppRootStateType } from "./store";
 import { setAppErrorAC, setAppStatusAC } from "./app-reducer";
+
+export type TasksStateType = {
+	[key: string]: TaskType[];
+};
 
 export type RemoveTaskActionType = {
 	type: "REMOVE-TASK";
@@ -33,6 +37,7 @@ export type ChangeTaskTitleActionType = {
 };
 
 export type setTasksType = ReturnType<typeof setTasksAC>;
+export type ChangeEditModeType = ReturnType<typeof changeEditModeAC>;
 
 type ActionsType =
 	| RemoveTaskActionType
@@ -42,7 +47,9 @@ type ActionsType =
 	| AddTodolistActionType
 	| RemoveTodolistActionType
 	| SetTodolistType
-	| setTasksType;
+	| setTasksType
+	| ChangeTodolistEntityStatus
+	| ChangeEditModeType;
 
 const initialState: TasksStateType = {};
 
@@ -50,10 +57,15 @@ export const tasksReducer = (
 	state: TasksStateType = initialState,
 	action: ActionsType
 ): TasksStateType => {
-	// debugger
 	switch (action.type) {
 		case "SET-TASKS": {
-			return { ...state, [action.todolistId]: action.tasks };
+			return {
+				...state,
+				[action.todolistId]: action.tasks.map((i) => ({
+					...i,
+					editMode: false,
+				})),
+			};
 		}
 
 		case "SET-TODOLISTS": {
@@ -89,8 +101,6 @@ export const tasksReducer = (
 			return stateCopy;
 		}
 		case "CHANGE-TASK-TITLE": {
-			// debugger
-			const a = action.title;
 			const stateCopy = {
 				...state,
 				[action.todolistId]: state[action.todolistId].map((i) =>
@@ -99,11 +109,17 @@ export const tasksReducer = (
 			};
 			return stateCopy;
 		}
+		case "CHANGE-EDIT-MODE": {
+			const stateCopy = {
+				...state,
+				[action.todolistId]: state[action.todolistId].map((i) =>
+					i.id === action.taskId ? { ...i, editMode: action.editMode } : i
+				),
+			};
+			return stateCopy;
+		}
 		case "ADD-TODOLIST": {
 			const stateCopy = { ...state, [action.todolistId]: [] };
-
-			// stateCopy[action.todolistId] = [];
-
 			return stateCopy;
 		}
 		case "REMOVE-TODOLIST": {
@@ -144,35 +160,55 @@ export const setTasksAC = (tasks: TaskType[], todolistId: string) => {
 	return { type: "SET-TASKS", tasks, todolistId } as const;
 };
 
+export const changeEditModeAC = (
+	taskId: string,
+	todolistId: string,
+	editMode: boolean
+) => {
+	return { type: "CHANGE-EDIT-MODE", taskId, todolistId, editMode } as const;
+};
+
 export const fetchTasksTC = (todolistId: string) => (dispatch: Dispatch) => {
 	todolistAPI.GetTask(todolistId).then((res) => {
 		dispatch(setTasksAC(res.data.items, todolistId));
+	}).catch((err)=> {
+		dispatch(setAppErrorAC(err.message))
 	});
 };
 
 export const removeTaskTC =
 	(todolistId: string, taskId: string) => (dispatch: Dispatch) => {
-		todolistAPI
-			.DeletTask(todolistId, taskId)
-			.then((res) => dispatch(removeTaskAC(taskId, todolistId)));
+		dispatch(changeTodolistEntityStatusAC(todolistId, "loading"));
+		todolistAPI.DeletTask(todolistId, taskId).then((res) => {
+			dispatch(removeTaskAC(taskId, todolistId));
+			dispatch(changeTodolistEntityStatusAC(todolistId, "succeeded"));
+		}).catch((err)=> {
+			dispatch(setAppErrorAC(err.message))
+			dispatch(changeTodolistEntityStatusAC(todolistId, "failed"))
+		});
 	};
 
 export const addTaskTC =
 	(title: string, todolistId: string) => (dispatch: Dispatch) => {
-		dispatch(setAppStatusAC("loading"));
+		// dispatch(setAppStatusAC("loading"));
+		dispatch(changeTodolistEntityStatusAC(todolistId, "loading"));
 		todolistAPI.CreateTask(todolistId, title).then((res) => {
-			
 			if (res.data.resultCode === 0) {
 				dispatch(addTaskAC(res.data.data.item));
-				dispatch(setAppStatusAC("succeeded"));
+				// dispatch(setAppStatusAC("succeeded"));
+				dispatch(changeTodolistEntityStatusAC(todolistId, "succeeded"));
 			} else {
 				if (res.data.messages.length) {
 					dispatch(setAppErrorAC(res.data.messages[0]));
 				} else {
 					dispatch(setAppErrorAC("Some error occurred"));
 				}
-				dispatch(setAppStatusAC("failed"));
+				// dispatch(setAppStatusAC("failed"));
+				dispatch(changeTodolistEntityStatusAC(todolistId, "failed"));
 			}
+		}).catch((err)=> {
+			dispatch(setAppErrorAC(err.message))
+			dispatch(changeTodolistEntityStatusAC(todolistId, "failed"))
 		});
 	};
 
@@ -192,11 +228,14 @@ export const changeTaskStatusTC =
 				deadline: task.deadline,
 				status: status,
 			};
-			todolistAPI
-				.UpdateTask(todolistId, taskId, modal)
-				.then((res) =>
-					dispatch(changeTaskStatusAC(taskId, status, todolistId))
-				);
+			dispatch(changeEditModeAC(taskId, todolistId, true));
+			todolistAPI.UpdateTask(todolistId, taskId, modal).then((res) => {
+				dispatch(changeTaskStatusAC(taskId, status, todolistId));
+				dispatch(changeEditModeAC(taskId, todolistId, false));
+			}).catch((err)=> {
+				dispatch(setAppErrorAC(err.message))
+				dispatch(changeEditModeAC(taskId, todolistId, false));
+			});
 		}
 	};
 
@@ -216,8 +255,13 @@ export const changeTaskTitleTC =
 				deadline: task.deadline,
 				status: task.status,
 			};
-			todolistAPI
-				.UpdateTask(todolistId, taskId, modal)
-				.then((res) => dispatch(changeTaskTitleAC(taskId, title, todolistId)));
+			dispatch(changeEditModeAC(taskId, todolistId, true));
+			todolistAPI.UpdateTask(todolistId, taskId, modal).then((res) => {
+				dispatch(changeTaskTitleAC(taskId, title, todolistId));
+				dispatch(changeEditModeAC(taskId, todolistId, false));
+			}).catch((err)=> {
+				dispatch(setAppErrorAC(err.message))
+				dispatch(changeEditModeAC(taskId, todolistId, false));
+			});
 		}
 	};
