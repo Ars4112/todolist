@@ -15,6 +15,7 @@ export type FilterValuesType = "all" | "active" | "completed";
 export type TodolistType = TodolistDomainType & {
 	filter: FilterValuesType;
 	entityStatus: RequestStatusType
+	taskEntityStatus: boolean
 };
 
 export type RemoveTodolistActionType = {
@@ -39,6 +40,7 @@ export type ChangeTodolistFilterActionType = {
 
 export type SetTodolistType = ReturnType<typeof setTodolistsAC>;
 export type ChangeTodolistEntityStatus = ReturnType<typeof changeTodolistEntityStatusAC>
+export type ChangeTaskEntityStatus = ReturnType<typeof changeTaskEntityStatusAC>
 
 type ActionsType =
 	| RemoveTodolistActionType
@@ -47,6 +49,7 @@ type ActionsType =
 	| ChangeTodolistFilterActionType
 	| SetTodolistType
 	| ChangeTodolistEntityStatus
+	| ChangeTaskEntityStatus
 
 const initialState: Array<TodolistType> = [
 ];
@@ -58,7 +61,7 @@ export const todolistsReducer = (
 	switch (action.type) {
 		case "SET-TODOLISTS": {
 			return action.todos.map((i) => {
-				return { ...i, filter: "all", entityStatus: "idle" };
+				return { ...i, filter: "all", entityStatus: "idle", taskEntityStatus: false};
 			});
 		}
 		case "CHANGE-TODOLIST-ENTITY-STATUS": {
@@ -77,7 +80,8 @@ export const todolistsReducer = (
 					filter: "all",
 					addedDate: "",
 					order: 0,
-					entityStatus: "idle"
+					entityStatus: "idle",
+					taskEntityStatus: false
 				},
 				...state,
 			];
@@ -91,12 +95,11 @@ export const todolistsReducer = (
 			return [...state];
 		}
 		case "CHANGE-TODOLIST-FILTER": {
-			const todolist = state.find((tl) => tl.id === action.id);
-			if (todolist) {
-				// если нашёлся - изменим ему заголовок
-				todolist.filter = action.filter;
-			}
-			return [...state];
+			return state.map(i => i.id === action.id ? {...i, filter: action.filter} : i)
+		}
+		
+		case "CHANGE-TASK-ENTITY-STATUS": {
+			return state.map(i => ({...i, taskEntityStatus: action.status}))
 		}
 		default:
 			return state;
@@ -133,6 +136,12 @@ export const changeTodolistEntityStatusAC = (id: string, status: RequestStatusTy
 	  id,
 	  status,
 	}) as const
+
+	export const changeTaskEntityStatusAC = (status: boolean) =>
+		({
+		  type: "CHANGE-TASK-ENTITY-STATUS",
+		  status,
+		}) as const
 
 export const fetchTodolistsTC = () => (dispatch: Dispatch) => {
 	dispatch(setAppStatusAC("loading"));

@@ -13,6 +13,7 @@ import { FilterValuesType, changeTodolistsTitleTC } from "./state/todolists-redu
 import { RequestStatusType } from "./state/app-reducer";
 import CircularProgress from '@mui/material/CircularProgress';
 
+
 type PropsType = {
 	id: string;
 	title: string;
@@ -30,20 +31,22 @@ type PropsType = {
 		newTitle: string,
 		todolistId: string
 	) => void;
+	taskEntityStatus:boolean
 };
 
 export const Todolist = memo((props: PropsType) => {
+	
 	const dispatch = useAppDispatch();
 	let tasks = props.tasks;
 	tasks = useMemo(() => {
-		let tasksForTodolist = props.tasks;
+		
 		if (props.filter === "active") {
-			tasksForTodolist = props.tasks.filter(
+			tasks = props.tasks.filter(
 				(t) => t.status === TaskStatuses.New
 			);
 		}
 		if (props.filter === "completed") {
-			tasksForTodolist = props.tasks.filter(
+			tasks = props.tasks.filter(
 				(t) => t.status === TaskStatuses.Completed
 			);
 		}
@@ -85,10 +88,9 @@ export const Todolist = memo((props: PropsType) => {
 	);
 
 	useEffect(() => {
+		
 		dispatch(fetchTasksTC(props.id));
 	}, []);
-
-	// console.log(tasks);
 
 	return (
 		<div>
@@ -100,7 +102,7 @@ export const Todolist = memo((props: PropsType) => {
 				</IconButton>
 			</h3>
 			<AddItemForm addItem={addTask} entityStatus={props.entityStatus}/>
-			{tasks.length ? <div>
+			{!props.taskEntityStatus ? <div>
 				{tasks.map((t) => {
 					return ( <TaskWithRedux
 							key={t.id}

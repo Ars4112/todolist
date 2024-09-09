@@ -4,17 +4,36 @@ import ReactDOM from 'react-dom/client';
 import { Provider } from 'react-redux';
 import { store } from './state/store'; // Убедитесь, что это ваш Redux store
 import {AppWithRedux} from './AppWithRedux'; // Ваш главный компонент приложения
+import { Login } from './Login';
+import { Navigate, RouterProvider, createBrowserRouter } from 'react-router-dom';
+import { TodolistContainer } from './TodolistContainer';
+import { ErrorPage } from './ErrorPage';
 
-// const container = document.getElementById('root');
-// // if (!container) throw new Error("Container not found");
-
-// const root = ReactDOM.createRoot(container);
-// root.render(
-//   <Provider store={store}>
-//     <AppWithRedux />
-	 
-//   </Provider>
-// );
+const router = createBrowserRouter([
+  {
+      path: "/",
+      element: <AppWithRedux/>,
+      errorElement: <Navigate to="/404"/>,
+      children: [
+        {
+          index: true,
+          element: <Navigate to="/todolists"/>
+        },
+          {
+              path: "/login",
+              element: <Login/>,
+          },
+          {
+              path: "/todolists",
+              element: <TodolistContainer/>,
+          },
+      ],
+  },
+  {
+    path: "/404",
+    element: <ErrorPage/>,
+}
+]);
 
 const root = ReactDOM.createRoot(
   document.getElementById('root') as HTMLElement
@@ -22,7 +41,7 @@ const root = ReactDOM.createRoot(
 
 root.render(
   <Provider store={store}>
-  <AppWithRedux />
+  <RouterProvider router={router}/>
   </Provider>
 );
 

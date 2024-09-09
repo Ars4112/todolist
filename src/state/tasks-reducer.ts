@@ -3,12 +3,13 @@ import {
 	ChangeTodolistEntityStatus,
 	RemoveTodolistActionType,
 	SetTodolistType,
+	changeTaskEntityStatusAC,
 	changeTodolistEntityStatusAC,
 } from "./todolists-reducer";
 import { TaskStatuses, TaskType, todolistAPI } from "../api/todolist-api";
 import { Dispatch } from "redux";
 import { AppRootStateType } from "./store";
-import { setAppErrorAC, setAppStatusAC } from "./app-reducer";
+import { setAppErrorAC} from "./app-reducer";
 
 export type TasksStateType = {
 	[key: string]: TaskType[];
@@ -100,6 +101,7 @@ export const tasksReducer = (
 			};
 			return stateCopy;
 		}
+
 		case "CHANGE-TASK-TITLE": {
 			const stateCopy = {
 				...state,
@@ -169,8 +171,10 @@ export const changeEditModeAC = (
 };
 
 export const fetchTasksTC = (todolistId: string) => (dispatch: Dispatch) => {
+	dispatch(changeTaskEntityStatusAC(true))
 	todolistAPI.GetTask(todolistId).then((res) => {
 		dispatch(setTasksAC(res.data.items, todolistId));
+		dispatch(changeTaskEntityStatusAC(false))
 	}).catch((err)=> {
 		dispatch(setAppErrorAC(err.message))
 	});

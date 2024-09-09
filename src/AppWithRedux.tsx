@@ -1,121 +1,49 @@
 import "./App.css";
-import { Todolist } from "./Todolist";
-
-import { AddItemForm } from "./AddItemForm";
 import {
 	AppBar,
 	Button,
+	CircularProgress,
 	Container,
-	Grid,
 	LinearProgress,
-	Paper,
-	Skeleton,
 	Toolbar,
 	Typography,
 } from "@mui/material";
 import IconButton from "@mui/material/IconButton/IconButton";
 import { Menu } from "@mui/icons-material";
-import {
-	FilterValuesType,
-	TodolistType,
-	addTodolistsTC,
-	changeTodolistFilterAC,
-	changeTodolistsTitleTC,
-	fetchTodolistsTC,
-	removeTodolistsTC,
-} from "./state/todolists-reducer";
-import {
-	TasksStateType,
-	addTaskTC,
-	changeTaskTitleTC,
-	removeTaskTC,
-} from "./state/tasks-reducer";
+
+import { ErrorSnackbar } from "./ErrorSnackbar";
 import { useSelector } from "react-redux";
 import { AppRootStateType, useAppDispatch } from "./state/store";
-import { useCallback, useEffect } from "react";
-import { TaskType } from "./api/todolist-api";
 import { RequestStatusType } from "./state/app-reducer";
-import { ErrorSnackbar } from "./ErrorSnackbar";
-
-
-
-
+import { Outlet } from "react-router-dom";
+import { useEffect } from "react";
+import { initializeAppTC, logOutTC } from "./state/auth-reducer";
 
 export function AppWithRedux() {
-	const todolists = useSelector<AppRootStateType, Array<TodolistType>>(
-		(state) => state.todolists
-	);
-	const tasks = useSelector<AppRootStateType, TasksStateType>(
-		(state) => state.tasks
-	);
-
 	const status = useSelector<AppRootStateType, RequestStatusType>(
 		(state) => state.app.status
 	);
-	
-
+	const isLoggedIn = useSelector<AppRootStateType, boolean>(state => state.auth.isLoggedIn)
+	const isInitialized = useSelector<AppRootStateType, boolean>(
+		(state) => state.app.isInitialized
+	);
 	const dispatch = useAppDispatch();
 
-	const removeTask = useCallback(
-		(id: string, todolistId: string) => {
-			dispatch(removeTaskTC(todolistId, id));
-		},
-		[dispatch]
-	);
+	const logOutHandler = ()=> {
+		dispatch(logOutTC())
+	}
 
-	const addTask = useCallback(
-		(title: string, todolistId: string) => {
-			dispatch(addTaskTC(title, todolistId));
-		},
-		[dispatch]
-	);
+	useEffect(()=> {
+		dispatch(initializeAppTC())
+	}, [])
 
-	// const changeStatus = useCallback(
-	// 	(id: string, isDone: boolean, todolistId: string) => {
-	// 		dispatch(changeTaskStatusAC(id, isDone, todolistId));
-	// 	},
-	// 	[dispatch]
-	// );
-
-	const changeTaskTitle = useCallback(
-		(id: string, newTitle: string, todolistId: string) => {
-			dispatch(changeTaskTitleTC(id, newTitle, todolistId));
-		},
-		[dispatch]
-	);
-
-	const changeFilter = useCallback(
-		(value: FilterValuesType, todolistId: string) => {
-			dispatch(changeTodolistFilterAC(todolistId, value));
-		},
-		[dispatch]
-	);
-
-	const removeTodolist = useCallback(
-		(id: string) => {
-			dispatch(removeTodolistsTC(id));
-		},
-		[dispatch]
-	);
-
-	const changeTodolistTitle = useCallback(
-		(id: string, title: string) => {
-			dispatch(changeTodolistsTitleTC(id, title));
-		},
-		[dispatch]
-	);
-
-	const addTodolist = useCallback(
-		(title: string) => {
-			dispatch(addTodolistsTC(title));
-		},
-		[dispatch]
-	);
-
-	useEffect(() => {
-		dispatch(fetchTodolistsTC());
-	}, []);
-
+	if (!isInitialized) {
+		return (
+		  <div style={{ position: 'fixed', top: '30%', textAlign: 'center', width: '100%' }}>
+			<CircularProgress />
+		  </div>
+		)
+	  }
 	return (
 		<div className="App">
 			<ErrorSnackbar />
@@ -125,46 +53,12 @@ export function AppWithRedux() {
 						<Menu />
 					</IconButton>
 					<Typography variant="h6">News</Typography>
-					<Button color="inherit">Login</Button>
+					{isLoggedIn && <Button color="inherit" onClick={logOutHandler}>LogOut</Button>}
 				</Toolbar>
 			</AppBar>
 			{status === "loading" && <LinearProgress />}
 			<Container fixed>
-				<Grid container style={{ padding: "20px" }}>
-					<AddItemForm addItem={addTodolist} status={status}/>
-				</Grid>
-				<Grid container spacing={3}>
-					{(status === "loading" ? Array.from(new Array(6)) : todolists).map(
-						(tl, index) => {
-							
-							return (
-								<Grid key={tl ? tl.id : index} item>
-									{tl ? (
-										<Paper style={{ padding: "10px" }}>
-											<Todolist
-												// key={tl.id}
-												id={tl.id}
-												title={tl.title}
-												tasks={tasks[tl.id]}
-												removeTask={removeTask}
-												changeFilter={changeFilter}
-												addTask={addTask}
-												// changeTaskStatus={changeStatus}
-												filter={tl.filter}
-												entityStatus={tl.entityStatus}
-												removeTodolist={removeTodolist}
-												changeTaskTitle={changeTaskTitle}
-												changeTodolistTitle={changeTodolistTitle}
-											/>
-										</Paper>
-									) : (
-										<Skeleton variant="rounded" width={260} height={190} />
-									)}
-								</Grid>
-							);
-						}
-					)}
-				</Grid>
+				<Outlet />
 			</Container>
 		</div>
 	);
