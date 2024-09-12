@@ -1,11 +1,7 @@
 import "./App.css";
 import { Todolist } from "./Todolist";
 import { AddItemForm } from "./AddItemForm";
-import {
-	Grid,
-	Paper,
-	Skeleton,
-} from "@mui/material";
+import { Grid, Paper, Skeleton } from "@mui/material";
 import {
 	FilterValuesType,
 	TodolistType,
@@ -27,13 +23,14 @@ import { useCallback, useEffect } from "react";
 import { RequestStatusType } from "./state/app-reducer";
 import { Navigate } from "react-router-dom";
 
-
 export function TodolistContainer() {
 	const todolists = useSelector<AppRootStateType, Array<TodolistType>>(
 		(state) => state.todolists
 	);
 
-    const isLoggedIn = useSelector<AppRootStateType, boolean>(state => state.auth.isLoggedIn)
+	const isLoggedIn = useSelector<AppRootStateType, boolean>(
+		(state) => state.auth.isLoggedIn
+	);
 	const tasks = useSelector<AppRootStateType, TasksStateType>(
 		(state) => state.tasks
 	);
@@ -101,15 +98,13 @@ export function TodolistContainer() {
 	);
 
 	useEffect(() => {
-        if (!isLoggedIn) return
+		if (!isLoggedIn) return;
 		dispatch(fetchTodolistsTC());
 	}, []);
 
-   
-
 	if (!isLoggedIn) {
-        return <Navigate to={"/login"}/>
-    }
+		return <Navigate to={"/login"} />;
+	}
 
 	return (
 		<>

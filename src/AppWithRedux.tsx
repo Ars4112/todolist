@@ -23,27 +23,36 @@ export function AppWithRedux() {
 	const status = useSelector<AppRootStateType, RequestStatusType>(
 		(state) => state.app.status
 	);
-	const isLoggedIn = useSelector<AppRootStateType, boolean>(state => state.auth.isLoggedIn)
+	const isLoggedIn = useSelector<AppRootStateType, boolean>(
+		(state) => state.auth.isLoggedIn
+	);
 	const isInitialized = useSelector<AppRootStateType, boolean>(
 		(state) => state.app.isInitialized
 	);
 	const dispatch = useAppDispatch();
 
-	const logOutHandler = ()=> {
-		dispatch(logOutTC())
-	}
+	const logOutHandler = () => {
+		dispatch(logOutTC());
+	};
 
-	useEffect(()=> {
-		dispatch(initializeAppTC())
-	}, [])
+	useEffect(() => {
+		dispatch(initializeAppTC());
+	}, []);
 
 	if (!isInitialized) {
 		return (
-		  <div style={{ position: 'fixed', top: '30%', textAlign: 'center', width: '100%' }}>
-			<CircularProgress />
-		  </div>
-		)
-	  }
+			<div
+				style={{
+					position: "fixed",
+					top: "30%",
+					textAlign: "center",
+					width: "100%",
+				}}
+			>
+				<CircularProgress />
+			</div>
+		);
+	}
 	return (
 		<div className="App">
 			<ErrorSnackbar />
@@ -53,7 +62,11 @@ export function AppWithRedux() {
 						<Menu />
 					</IconButton>
 					<Typography variant="h6">News</Typography>
-					{isLoggedIn && <Button color="inherit" onClick={logOutHandler}>LogOut</Button>}
+					{isLoggedIn && (
+						<Button color="inherit" onClick={logOutHandler}>
+							LogOut
+						</Button>
+					)}
 				</Toolbar>
 			</AppBar>
 			{status === "loading" && <LinearProgress />}
