@@ -14,21 +14,17 @@ import { Menu } from "@mui/icons-material";
 import { ErrorSnackbar } from "./ErrorSnackbar";
 import { useSelector } from "react-redux";
 import { AppRootStateType, useAppDispatch } from "./state/store";
-import { RequestStatusType } from "./state/app-reducer";
+import { RequestStatusType, selectorAppInitialized, selectorAppStatus } from "./state/app-reducer";
 import { Outlet } from "react-router-dom";
 import { useEffect } from "react";
 import { initializeAppTC, logOutTC } from "./state/auth-reducer";
 
 export function AppWithRedux() {
-	const status = useSelector<AppRootStateType, RequestStatusType>(
-		(state) => state.app.status
-	);
+	const status = useSelector<AppRootStateType, RequestStatusType>(selectorAppStatus);
 	const isLoggedIn = useSelector<AppRootStateType, boolean>(
 		(state) => state.auth.isLoggedIn
 	);
-	const isInitialized = useSelector<AppRootStateType, boolean>(
-		(state) => state.app.isInitialized
-	);
+	const isInitialized = useSelector<AppRootStateType, boolean>(selectorAppInitialized);
 	const dispatch = useAppDispatch();
 
 	const logOutHandler = () => {

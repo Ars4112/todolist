@@ -6,7 +6,7 @@ import {
 	FilterValuesType,
 	TodolistType,
 	addTodolistsTC,
-	changeTodolistFilterAC,
+	changeTodolistFilter,
 	changeTodolistsTitleTC,
 	fetchTodolistsTC,
 	removeTodolistsTC,
@@ -20,7 +20,7 @@ import {
 import { useSelector } from "react-redux";
 import { AppRootStateType, useAppDispatch } from "./state/store";
 import { useCallback, useEffect } from "react";
-import { RequestStatusType } from "./state/app-reducer";
+import { RequestStatusType, selectorAppStatus } from "./state/app-reducer";
 import { Navigate } from "react-router-dom";
 
 export function TodolistContainer() {
@@ -35,9 +35,7 @@ export function TodolistContainer() {
 		(state) => state.tasks
 	);
 
-	const status = useSelector<AppRootStateType, RequestStatusType>(
-		(state) => state.app.status
-	);
+	const status = useSelector<AppRootStateType, RequestStatusType>(selectorAppStatus);
 
 	const dispatch = useAppDispatch();
 
@@ -71,7 +69,7 @@ export function TodolistContainer() {
 
 	const changeFilter = useCallback(
 		(value: FilterValuesType, todolistId: string) => {
-			dispatch(changeTodolistFilterAC(todolistId, value));
+			dispatch(changeTodolistFilter({todolistId, filter: value}));
 		},
 		[dispatch]
 	);

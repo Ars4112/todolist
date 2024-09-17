@@ -1,84 +1,68 @@
-import { Dispatch } from "redux";
-import {
-	SetAppErrorActionType,
-	SetAppInitializedType,
-	SetAppStatusActionType,
-	setAppErrorAC,
-	setAppInitializedAC,
-	setAppStatusAC,
-} from "./app-reducer";
+import { Dispatch, PayloadAction, createSlice } from "@reduxjs/toolkit";
+import { setAppError, setAppInitialized, setAppStatus} from "./app-reducer";
 import { LoginParamsType, authAPI } from "../api/todolist-api";
 
 const initialState = {
 	isLoggedIn: false,
 };
+
 type InitialStateType = typeof initialState;
 
-export const authReducer = (
-	state: InitialStateType = initialState,
-	action: ActionsType
-): InitialStateType => {
-	switch (action.type) {
-		case "login/SET-IS-LOGGED-IN": {
-			return { ...state, isLoggedIn: action.value };
-		}
-		default:
-			return state;
-	}
-};
-// actions
-export const setIsLoggedInAC = (value: boolean) =>
-	({ type: "login/SET-IS-LOGGED-IN", value }) as const;
+export const authSlice = createSlice({
+    name:"auth",
+    initialState,
+    reducers: {
+        setIsLoggedIn(state, action: PayloadAction<{isLoggedIn: boolean}>) {
+            state.isLoggedIn= action.payload.isLoggedIn 
+        }
+    }
+})
 
-// thunks
+export const authReducer = authSlice.reducer
+export const authActions = authSlice.actions.setIsLoggedIn
+
 export const loginTC =
-	(data: LoginParamsType) => (dispatch: Dispatch<ActionsType>) => {
-		dispatch(setAppStatusAC("loading"));
+	(data: LoginParamsType) => (dispatch: Dispatch) => {
+		dispatch(setAppStatus({status: "loading"}));
 		authAPI
 			.login(data)
 			.then((res) => {
 				if (res.data.resultCode === 0) {
-					dispatch(setIsLoggedInAC(true));
+					dispatch(authActions({isLoggedIn:true}));
 				} else {
 					if (res.data.messages.length) {
-						dispatch(setAppErrorAC(res.data.messages[0]));
+						dispatch(setAppError({error: res.data.messages[0]}));
 					} else {
-						dispatch(setAppErrorAC("Some error occurred"));
+						dispatch(setAppError({error: "Some error occurred"}));
 					}
 					// dispatch(setAppStatusAC("failed"));
 					// dispatch(changeTodolistEntityStatusAC(todolistId, "failed"));
 				}
 			})
 			.catch((err) => {
-				dispatch(setIsLoggedInAC(false));
+				dispatch(authActions({isLoggedIn:false}));
 			})
-			.finally(() => dispatch(setAppStatusAC("idle")));
+			.finally(() => dispatch(setAppStatus({status: "idle"})));
 	};
 
-export const initializeAppTC = () => (dispatch: Dispatch<ActionsType>) => {
+export const initializeAppTC = () => (dispatch: Dispatch) => {
 	authAPI
 		.me()
 		.then((res) => {
 			if (res.data.resultCode === 0) {
-				dispatch(setIsLoggedInAC(true));
+				dispatch(authActions({isLoggedIn:true}));
 			}
 		})
-		.finally(() => dispatch(setAppInitializedAC(true)));
+		.finally(() => dispatch(setAppInitialized({isInitialized: true})));
 };
 
-export const logOutTC = () => (dispatch: Dispatch<ActionsType>) => {
-    dispatch(setAppStatusAC("loading"));
+export const logOutTC = () => (dispatch: Dispatch) => {
+    dispatch(setAppStatus({status: "loading"}));
 	authAPI.logOut().then((res) => {
 			if (res.data.resultCode === 0) {
-				dispatch(setIsLoggedInAC(false));
+				dispatch(authActions({isLoggedIn:false}));
 			}
 		})
-		.finally(() => dispatch(setAppStatusAC("idle")));
+		.finally(() => dispatch(setAppStatus({status: "idle"})));
 };
 
-// types
-type ActionsType =
-	| ReturnType<typeof setIsLoggedInAC>
-	| SetAppStatusActionType
-	| SetAppErrorActionType
-	| SetAppInitializedType;

@@ -4,7 +4,7 @@ import Snackbar, { SnackbarCloseReason } from '@mui/material/Snackbar';
 import Alert from '@mui/material/Alert';
 import { useSelector } from 'react-redux';
 import { AppRootStateType, useAppDispatch } from './state/store';
-import {  ErrorStateType, setAppErrorAC } from './state/app-reducer';
+import {  ErrorStateType, setAppError} from './state/app-reducer';
 
 export  function ErrorSnackbar() {
   
@@ -19,7 +19,7 @@ const dispatch = useAppDispatch();
       return;
     }
 
-   dispatch(setAppErrorAC(null))
+   dispatch(setAppError({error: null}))
   };
 
   return (

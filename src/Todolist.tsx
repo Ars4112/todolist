@@ -106,7 +106,7 @@ export const Todolist = memo((props: PropsType) => {
 			<AddItemForm addItem={addTask} entityStatus={props.entityStatus} />
 			{!props.taskEntityStatus ? (
 				<div>
-					{tasks.map((t) => {
+					{tasks?.map((t) => {
 						return (
 							<TaskWithRedux
 								key={t.id}

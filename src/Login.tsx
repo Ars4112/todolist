@@ -20,8 +20,10 @@ type FormikErrorType = {
 };
 
 export const Login = () => {
-    const isLoggedIn = useSelector<AppRootStateType, boolean>(state => state.auth.isLoggedIn)
-    const dispatch = useAppDispatch();
+	const isLoggedIn = useSelector<AppRootStateType, boolean>(
+		(state) => state.auth.isLoggedIn
+	);
+	const dispatch = useAppDispatch();
 	const formik = useFormik({
 		initialValues: {
 			email: "",
@@ -46,13 +48,13 @@ export const Login = () => {
 			return errors;
 		},
 		onSubmit: (values) => {
-            dispatch(loginTC(values))
+			dispatch(loginTC(values));
 		},
 	});
 
 	if (isLoggedIn) {
-        return <Navigate to={"/todolists"}/>
-    }
+		return <Navigate to={"/todolists"} />;
+	}
 
 	return (
 		<Grid container justifyContent={"center"}>
